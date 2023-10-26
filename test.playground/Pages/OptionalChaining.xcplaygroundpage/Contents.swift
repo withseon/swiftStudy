@@ -47,12 +47,12 @@ import Foundation
 
 // MARK: 옵셔널 체이닝 예제 4
 // 옵셔널 체이닝을 이용하여 students 딕셔너리의 "Lee" 키에 해당하는 값에 1을 더한 값을 출력
-var students: [String: Int]? = ["Kim": 90, "Lee": 80, "Park": 85]
-if let score = students?["Lee"]{
-    print(score + 1)
-}
-
-print((students?["Lee"] ?? 0) + 1)
+//var students: [String: Int]? = ["Kim": 90, "Lee": 80, "Park": 85]
+//if let score = students?["Lee"]{
+//    print(score + 1)
+//}
+//
+//print((students?["Lee"] ?? 0) + 1)
 
 // MARK: 옵셔널 체이닝 예제 5
 // 옵셔널 체이닝을 이용하여 animal의 speak 메서드를 호출
@@ -73,24 +73,44 @@ print((students?["Lee"] ?? 0) + 1)
 
 // MARK: 옵셔널 체이닝 예제 6
 // 옵셔널 체이닝을 이용하여 matrix의 transpose 메서드를 호출하여 결과를 출력
-struct Matrix {
-    var elements: [[Int]]
-
-    func transpose() -> Matrix {
-        var result = [[Int]]()
-        for i in 0..<elements[0].count {
-            var row = [Int]()
-            for j in 0..<elements.count {
-                row.append(elements[j][i])
-            }
-            result.append(row)
-        }
-        return Matrix(elements: result)
-    }
-}
-
-var matrix: Matrix? = Matrix(elements: [[1, 2, 3], [4, 5, 6]])
-print(matrix?.transpose().elements ?? 0)
+//struct Matrix {
+//    var elements: [[Int]]
+//
+//    func transpose() -> Matrix {
+//        var result = [[Int]]()
+//        for i in 0..<elements[0].count {
+//            var row = [Int]()
+//            for j in 0..<elements.count {
+//                row.append(elements[j][i])
+//            }
+//            result.append(row)
+//        }
+//        return Matrix(elements: result)
+//    }
+//}
+//
+//var matrix: Matrix? = Matrix(elements: [[1, 2, 3], [4, 5, 6]])
+//print(matrix?.transpose().elements ?? 0)
 
 // MARK: 옵셔널 체이닝 예제 7
+// 옵셔널 체이닝을 이용하여 numbers 배열의 모든 요소를 더한 값을 출력. numbers가 nil이면 0을 출력
+//var numbers: [Int]? = [1, 2, 3, 4, 5]
+//////var numbers: [Int]? = nil
+//print(numbers?.reduce(0, +) ?? 0)
+
 // MARK: 옵셔널 체이닝 예제 8
+// 옵셔널 체이닝을 이용하여 students 배열의 모든 요소의 score 속성의 평균값을 출력. students가 nil이거나 비어있으면 0을 출력
+//struct Student {
+//    var name: String
+//    var score: Int
+//}
+//
+//var students: [Student]? = [Student(name: "Kim", score: 80),
+//                            Student(name: "Lee", score: 90),
+//                            Student(name: "Park", score: 85)]
+////var students: [Student]? = nil
+//
+//print( students?.map { $0.score }.reduce(0, +) ?? 0 )
+//print( students?.count ?? 1 )
+//print( (students?.map { $0.score }.reduce(0, +) ?? 0) / (students?.count ?? 1) )
+//print((students?.reduce(into: 0){ $0 += $1.score } ?? 0)/(students?.count ?? 1))

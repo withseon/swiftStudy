@@ -1,5 +1,5 @@
-import Foundation
-
+//import Foundation
+//
 // MARK: 열거형 예제 2
 //enum Animal{
 //    case dog(name: String), cat(name: String), bird(name: String)

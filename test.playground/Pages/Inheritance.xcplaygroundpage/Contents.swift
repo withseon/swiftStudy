@@ -1,5 +1,5 @@
-import Foundation
-
+//import Foundation
+//
 // MARK: 상속 예제 5
 //class Animal{
 //    var name: String = ""

@@ -1,6 +1,6 @@
 
-import Foundation
-
+//import Foundation
+//
 // 민재님이 주신 고차함수 뜯어보기
 //extension Array {
 //    func mapp<T>(_ transform: (Int) -> T) -> [T] {

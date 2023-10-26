@@ -1,5 +1,5 @@
 // 비동기(동시성)
-import Foundation
+//import Foundation
 
 //// 동시성 예제 3
 //func asyncFunction() async -> Int{
