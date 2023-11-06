@@ -10,5 +10,6 @@
         <page name='Async'/>
         <page name='Closer'/>
         <page name='OptionalChaining'/>
+        <page name='Protocol'/>
     </pages>
 </playground>
