@@ -11,5 +11,6 @@
         <page name='Closer'/>
         <page name='OptionalChaining'/>
         <page name='Protocol'/>
+        <page name='Generics'/>
     </pages>
 </playground>
