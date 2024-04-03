@@ -1,0 +1,169 @@
+{
+  "main": {
+    "id": "ad152df60f9df007",
+    "type": "split",
+    "children": [
+      {
+        "id": "6e9608f557be083b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5dcd52c01e95643e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Swift Grammar/Part18. 클로저.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "0a8169684bcf9221",
+    "type": "split",
+    "children": [
+      {
+        "id": "06d21b3465257174",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "155d86c8bba23145",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "b7da802fb6fb41cd",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "548acacac7c19cd5",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "e4956f70f0c72589",
+    "type": "split",
+    "children": [
+      {
+        "id": "e53f6f4bf6dd9b01",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e6833daf4a560184",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Swift Grammar/Part18. 클로저.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "fe1989edd5d99016",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Swift Grammar/Part18. 클로저.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "0eda800672341105",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "ae2cf585d018ceb8",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Swift Grammar/Part18. 클로저.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:퀵 스위처 열기": false,
+      "graph:그래프 뷰 열기": false,
+      "canvas:새 캔버스 만들기": false,
+      "daily-notes:오늘의 데일리 노트 열기": false,
+      "templates:템플릿 삽입": false,
+      "command-palette:명령어 팔레트 열기": false
+    }
+  },
+  "active": "5dcd52c01e95643e",
+  "lastOpenFiles": [
+    "Swift Grammar/Part6. 반복문.md",
+    "Swift Grammar/Part5. 삼항연산자.md",
+    "Swift Grammar/Part3. 프로그래밍의 기본 원리.md",
+    "Swift Grammar/Part4. 튜플.md",
+    "Swift Grammar/Part2. 기본연산자.md",
+    "Swift Grammar/Part7. 함수.md",
+    "Swift Grammar/Part18. 클로저.md",
+    "Allen School/Part18. 클로저.md",
+    "Swift Grammar",
+    "Allen School/Part7. 함수.md",
+    "Allen School/Part6. 반복문.md",
+    "Allen School/Part5. 삼항연산자.md",
+    "Allen School/Part3. 프로그래밍의 기본 원리.md",
+    "Allen School/Part2. 기본연산자.md",
+    "Allen School/Part4. 튜플.md",
+    "Welcome.md",
+    "Allen School"
+  ]
+}
