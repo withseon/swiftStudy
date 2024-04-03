@@ -74,6 +74,97 @@ final class ComposableArchitectureExampleTests: XCTestCase {
             $0.tab1.count = 1
         }
     }
+    
+    func testAddFlow() async {
+        let store = TestStore(initialState: ContactsFeature.State()) {
+            ContactsFeature()
+        } withDependencies: {
+            // 0부터 시작하여 순차적으로 증가하는 ID를 생성
+            $0.uuid = .incrementing
+        }
+        
+        // + 버튼을 탭할 때
+        await store.send(.addButtonTapped) {
+            $0.destination = .addContact(
+                AddContactFeature.State(
+                    contact: Contact(id: UUID(0), name: "")
+                )
+            )
+        }
+        
+        // 텍스트 필드에 "Blob Jr."을 입력했을 때
+        await store.send(\.destination.addContact.setName, "Blob Jr.") {
+            $0.destination?.addContact?.contact.name = "Blob Jr."
+        }
+        
+        // 저장 버튼 탭 후 상태가 즉시 변경되지 않기 때문에 후행 클로저 사용 X
+        await store.send(\.destination.addContact.saveButtonTapped)
+        
+        // 저장 버튼 탭 후 수신
+        await store.receive(
+            \.destination.addContact.delegate.saveContact,
+             Contact(id: UUID(0), name: "Blob Jr.")
+        ) {
+            $0.contacts = [
+                Contact(id: UUID(0), name: "Blob Jr.")
+            ]
+        }
+        
+        // destination 종료
+        await store.receive(\.destination.dismiss) {
+            $0.destination = nil
+        }
+    }
+    
+    func testAddFlow_NonExhaustive() async {
+        let store = TestStore(initialState: ContactsFeature.State()) {
+            ContactsFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+        }
+        
+        // non-exhaustive 스타일로 테스트하기 위해 설정
+        store.exhaustivity = .off
+        
+        // 상태 변경을 주장할 필요가 없기 때문에 후행 클로저 X
+        await store.send(.addButtonTapped)
+        await store.send(\.destination.addContact.setName, "Blob Jr.")
+        await store.send(\.destination.addContact.saveButtonTapped)
+        // 저장 버튼 탭 후 수신 스킵
+        await store.skipReceivedActions()
+        
+        // 최종적으로 contact가 추가되고 destination이 종료됨을 확인
+        store.assert {
+            $0.contacts = [
+                Contact(id: UUID(0), name: "Blob Jr.")
+            ]
+            $0.destination = nil
+        }
+    }
+    
+    func testDeleteContact() async {
+        let store = TestStore(
+            initialState: ContactsFeature.State(
+                contacts: [
+                    Contact(id: UUID(0), name: "Blob"),
+                    Contact(id: UUID(1), name: "Blob Jr.")
+                ]
+            )
+        ) {
+            ContactsFeature()
+        }
+        
+        // 두번째 연락처 삭제 후 alert 상태 변경
+        await store.send(.deleteButtonTapped(id: UUID(1))) {
+            $0.destination = .alert(.deleteConfirmation(id: UUID(1)))
+        }
+        
+        // 삭제 확인
+        await store.send(.destination(.presented(.alert(.confirmDeletion(id: UUID(1)))))) {
+            $0.contacts.remove(id: UUID(1))
+            $0.destination = nil
+        }
+    }
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

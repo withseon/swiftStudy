@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  CounterView.swift
 //  ComposableArchitectureExample
 //
 //  Created by 정인선 on 3/15/24.

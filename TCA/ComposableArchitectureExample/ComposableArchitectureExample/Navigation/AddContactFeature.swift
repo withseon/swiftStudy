@@ -21,7 +21,9 @@ struct AddContactFeature {
         case saveButtonTapped
         case setName(String)
         // 하위 기능이 원하는 작업을 상위 기능에 알릴 수 있도록 함
-        enum Delegate: Equatable {
+        // saveContact delegate action 수신을 위해 @CasePathable 매크로 사용
+        @CasePathable
+        enum Delegate {
             case saveContact(Contact)
         }
     }
