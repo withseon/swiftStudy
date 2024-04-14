@@ -139,3 +139,95 @@ animal.name = "호랑이" // ERROR
 - `let animal = Animal()` 선언했기 때문에, animal이 담고 있는 데이터 값은 변할 수 없다. 따라서 animal의 name을 변경하는 코드에서는 에러가 난다!
 
 
+### 접문법의 정확한 의미
+- = 명시적 멤버 표현식(Explicit Member Expression)
+- = (점)을 사용한 문법
+
+점문법을 사용하여 `내부 요소(= 인스턴스의 멤버)에 접근한다.`
+(인스턴스의 멤버에는 속성과 메서드가 있다.)
+
+
+### 관습적인 부분
+- 클래스와 구조체 모두 속성 - 메서드 순으로 작성
+- 내부에는 `메서드 실행문 불가. 메서드 선언만 가능`
+
+
+## 초기화 메서드(Initializer)
+---
+사실 위에서 작성한 예제는 붕어빵을 틀에 맞춰서 만든 뒤, 속재료를 바꿔주는 느낌
+초기화를 하면 붕어빵을 틀에 맞춰 만들 때 속재료까지 넣어버릴 수 있다.
+
+- `init()`
+- 모든 저장 속성(변수)을 초기화해야 한다.
+- 초기화 메서드(생성자) 종료 시점에 모든 속성의 초기값이 저장되어야 한다. (초기화가 완료되지 않으면 컴파일 에러)
+- 초기화의 목적은 `저장속성 초기화`
+- 클래스, 구조체, (열거형)은 그냥 틀이다. 실제로 사용하기 위해서는 초기화 과정이 필요하다!
+
+```
+class Dog {
+	var name: String
+	var weight: Double
+	
+	// 초기화 함수는 func 키워드를 사용하지 않음
+	init(name: String, weight: Double) {
+		self.name = name
+		self.weight = weight
+	}
+}
+```
+
+- `self`는 클래스/구조체에서 해당 인스턴스(자기 자신)를 의미한다.
+- 위와 같이 초기화 함수의 파라미터와 인스턴스의 속성 이름이 같을 경우, 대입연산자 좌 우 모두 함수의 파라미터로 인식해버린다. 
+  -> `self` 키워드를 사용하여 함수의 파라미터가 아닌, 인스턴스의 속성임을 알려줘야 한다.
+
+```
+var choco = Dog() // ERROR
+var bori = Dog(name: "보리", weight: 15.0)
+
+print(bori.name) // "보리"
+print(bori.weight) // 15.0
+```
+
+- `var choco = Dog()`은 속성의 값을 초기화하지 않았기 때문에 메모리에 정상적으로 인스턴스가 생성되지 않아 에러가 발생한다.
+
+### 속성이 옵셔널 타입인 경우
+
+```
+class Dog3 {
+	var name: String?
+	var weight: Int
+	
+	init(weight: Int) {
+		self.weight = weight
+	}
+}
+
+var dog7 = Dog3(weight: 10)
+print(dog7.name) // nil
+```
+
+- Dog3의 속성 `name`은 옵셔널로 선언되어있는데, 옵셔널은 선언 시 값을 대입하지 않으면 nil로 초기화된다.
+- 따라서, 옵셔널 타입의 속성은 init 메서드로 초기값을 설정해주지 않아도 된다!
+
+```
+class Dog4 {
+	var name: String?
+	var weight: Int
+	
+	init(name: String = "강아지", weight: Int) {
+		self.name = name
+		self.weight = weight
+	}
+}
+
+var dog8 = Dog4(weight: 10)
+print(dog8.name) // "강아지"
+print(dog8.weight) // 10
+
+var dog9 = Dog4(name: "보리", weight: 15)
+print(dog9.name) // "보리"
+print(dog9.weight) // 15
+```
+
+- `init(name: String = "강아지", weight: Int)`로 파라미터의 기본값을 설정해준다면,
+  `var dog8 = Dog4(weight: 10)` 코드로 인스턴스를 생성할 때에 name은 설정된 기본값이 들어가게 할 수도 있고, `var dog9 = Dog4(name: "보리", weight: 15)`로 name의 값을 지정해줄 수도 있다.
