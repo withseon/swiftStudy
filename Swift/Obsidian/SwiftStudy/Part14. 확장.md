@@ -404,7 +404,68 @@ extension Rect {
 
 
 ### 서브스크립트
+`서브스크립트도 메서드로 구현되기 때문에 확장에서 추가할 수 있다.`
+
+```swift
+extension Int {
+	subscript(digitIndex: Int) -> Int {
+		var decimalBase = 1
+		for _ 0..<digitIndex {
+			decimalBase *= 10
+		}
+		return (self / decimalBase) % 10
+	}
+
+
+123456789[0] // 9
+123456789[1] // 8
+123456789[2] // 7
+123456789[9] // 0
+```
 
 
 
-### 새로운 중첩 타입 정의 및 사용, 프로토콜 채택 및 관련 메서드
+### 새로운 중첩 타입 정의 및 사용
+
+중첩 타입
+`타입 내에 타입을 정의`
+
+```swift
+class Day {
+	enum Weekday {
+		case mon
+		case tue
+		case wed
+	}
+	var day: Weeekday = .mon
+}
+
+var dd: Day.Weekday = Day.Weekday.mon
+```
+
+확장에서 중첩 타입 정의 및 사용
+
+```swift
+extension Int {
+	// 새로운 열거형 타입 정의
+	enum Kind {
+		case zero, negative, positive
+	}
+	var kind: Kind {
+		switch self {
+		case 0:
+			return Kind.zero
+		case let x where x > 0:
+			return Kind.positive
+		default:
+			return Kind.negative
+		}
+	}
+}
+
+let a = 1
+a.kind // Kind.positive
+```
+
+### 프로토콜 채택 및 프로토콜 관련 메서드
+- 프로토콜 파트에서 정리
