@@ -438,3 +438,113 @@ let some: AProtocol & BProtocol = 두 프로토콜을 모두 채택한 타입의
 - 스위프트로 작성한 코드를 Objective-C에서도 사용할 수 있게 해주는 어트리뷰트
 
 
+## 프로토콜 확장
+---
+`기본 구현을 사용함으로써, 코드 중복 최소화`
+프로토콜을 채택한 모든 타입 내에서 요구 사항(메서드)에 대한 구현 내용이 같을 경우, 코드의 중복이 일어난다. 프로토콜을 `확장`하여 메서드에 대한 기본 구현을 함으로써 코드의 중복을 최소화할 수 있다.
+
+
+```swift
+protocol Remote {
+	func turnOn()
+	func turnOff()
+}
+
+// 확장
+extension Remote {
+	func turnOn() { // 요구사항(메서드) 기본 구현
+		print("전원 켜기")
+	}
+	func turnOff() { // 요구사항(메서드) 기본 구현
+		print("전원 끄기")
+	}
+	func doAnotherAction() { // 메서드 추가
+		print("또 다른 액션")
+	}
+}
+```
+
+```swift
+class TV: Remote {
+	func changeChannel() {
+		print("채널 변경")
+	}
+}
+
+let tv = TV()
+tv.turnOn() // 전원 켜기  --- 기본 구현
+tv.turnOff() // 전원 끄기 --- 기본 구현
+
+struct Aircon: Remote {
+	func turnOn() {
+		print("에어컨 전원 켜기")
+	}
+	func doAnotherAction() {
+		print("에어컨 또 다른 액션")
+	}
+}
+
+let aircon1 = Aircon() // Aircon 타입
+aircon1.turnOn() // 에어컨 전원 켜기 --- 채택 구현
+aircon1.turnOff() // 전원 끄기 --- 기본 구현
+aircon1.doAnotherAction() // 에어컨 또 다른 액션 --- 타입에 따른 선택
+
+let aircon2: Remote = Aircon() // Remote 타입
+aircon2.turnOn() // 에어컨 전원 켜기 -- 채택 구현
+aircon2.turnOff() // 전원 끄기 --- 기본 구현
+aircon2.doAnotherAction() // 또 다른 액션 --- 타입에 따른 선택
+```
+
+**✨✨doAnotherAction()의 동작이 타입에 따라 다른 이유**
+- *Witness Table과 Virtual Table*
+- *Direct Dispatch(Static Dispatch)*
+
+
+### 프로토콜 지향 프로그래밍(POP)
+
+**객체 지향 프로그래밍의 단점**
+1. 클래스의 상속은 단일 상속만 가능하다.
+2. 상속을 하게 되면 원치 않는 속성이나 메서드를 포함해야 할 가능성이 있다.
+3. 클래스 타입만 상속이 가능하다.
+
+**프로토콜 프로그래밍의 장점**
+1. 여러 개의 프로토콜 채택 가능 (다중 상속 역할)
+2. 메모리 구조에 대한 특정 요구 사항이 없다. (선택적 요구 사항 정의 가능)
+3.  확장을 통해 메서드의 기본 구현을 제공한다. (코드 중복 최소화)
+4.  프로토콜은 일급 객체로, 활용성이 높다.
+
+>다양한 타입에서 재사용, 여러 조합으로 구성 가능
+>필요에 따라 확장을 통한 기능 추가 (기본 데이터 타입에도 프로토콜 채택 가능)
+>구현을 추상화하여 필요한 부분만 테스트 가능
+
+
+
+# 프로토콜 확장 적용 제한
+`특정 프로토콜에만 extension(확장)을 적용할 수 있도록 함`
+- `where` 키워드 사용
+
+```swift
+protocol Bluetooth {
+	func blueOn()
+	func blueOff()
+}
+
+extension Bluetooth where Self: Remote { // 확장 제한
+	func blueOn() { print("블루투스 켜기") }
+	func blueOff() { print("블루투스 끄기") }
+}
+
+class SmartPhone: Remote, Bluetooth { // Remote와 Bluetooth 채택
+	// 확장에서 요구사항에 대한 기본 구현이 되어 있음
+}
+
+class Ipad: Bluetooth { // Bluetooth만 채택
+	// 확장의 내용이 적용되지 않기 때문에 요구사항에 대한 세부 구현을 해야 함
+	func blueOn() { print("Ipad 블루투스 켜기") }
+	func blueOff() { print("Ipad 블루투스 끄기") }
+}
+```
+
+- `where Self: Remote` 코드를 사용하여, Remote 프로토콜을 채택하고 있는 타입에만 확장의 내용을 적용할 수 있도록 한다.
+- SmartPhone은 Remote 프로토콜을 채택했기 때문에 확장이 적용되었다.
+- Ipad는 Remote 프로토콜을 채택하지 않았기 때문에 확장이 적용되지 않는다.
