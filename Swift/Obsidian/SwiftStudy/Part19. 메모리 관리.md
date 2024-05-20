@@ -240,7 +240,9 @@ gildong = nil // 홍길동 RC: 0 -> 메모리 해제
 
 
 
-## 클로저와 메모리 관리
+## 클로저와 메모리 관리 ✨
+
+> 코드를 보고 동작 방법을 이해할 수 있도록 공부하자.
 
 ### 캡처 현상
 `클로저 내부에서 외부 변수를 사용해야 하면, 캡처 현상 발생`
@@ -415,3 +417,192 @@ let captureWeakBinding = { [weak z = s] in // weak로 선언
 captureBinding() // 바인딩의 경우: 0
 captureWeakBinding() // Weak 바인딩의 경우: Optional(0)
 ```
+
+
+### 객체 내의 클로저
+
+- 클로저 내에서 인스턴스의 속성 및 메서드에 접근하고자 할때, `self` 키워드를 <ins>반드시</ins> 사용해야 한다.
+- Swift 5.3 이후 `[self]`를 사용할 수 있다.
+- Swift 5.3 이후, 구조체에서는 self를 생략할 수 있다.
+
+```swift
+class Dog {
+	var name = "초코"
+
+	func doSomething() {
+		// 비동기적으로 실행하는 클로저
+		// 멀티스레딩 - 스택에서 클로저를 사용해야 하기 때문에 Heap 영역에 올라감
+		DispatchQueue.global().async {
+			print("나의 이름은 \(self.name)입니다.")
+		}
+	}
+}
+```
+
+- 위 코드에서 `DispatchQueue` 사용으로 해당 클로저가 다른 스택에서 동작하게 된다.
+- 따라서, 클로저는 Heap 영역에 할당되게 되며 인스턴스의 메모리 주소를 캡처한다.
+- 이때, 객체의 속성이나 메서드를 사용하는 경우 `self` 키워드를 사용하여 강한 참조(RC +1)가 이루어지고 있음을 나타내야 한다.
+- 강한 참조 사이클를 방지하기 위해 `[weak self]` 와 같이 약한 참조로 선언할 수 있다. (비소유 참조도 가능)
+- 스레드(스택)에서 클로저가 종료되면, 클로저는 Heap에서 메모리가 해제된다. (클로저의 RC가 0이면 자동 해제)
+
+
+- 추가 예제
+
+```swift
+class Person {
+	let name = "홍길동"
+
+	func sayMyName() {
+		print("나의 이름은 \(name)입니다.")
+	}
+	func sayMyName1() {
+		// 클로저가 Heap에 올라감
+		DispatchQueue.global().async {
+			print("나의 이름은 \(self.name)입니다.") // 강한 참조
+		}
+	}
+	func sayMyName2() {
+		// 클로저가 Heap에 올라감
+		DispatchQueue.global().async { [weak self] in // 약한 참조
+			print("나의 이름은 \(self?.name)입니다.") // Optional
+		}
+	}
+	func sayMyName3() {
+		// 클로저가 Heap에 올라감
+		DispatchQueue.global().async { [weak self] in // 약한 참조
+			guard let weakSelf = self else { return } // 옵셔널 바인딩
+			print("나의 이름은 \(weakSelf.name)입니다. (가드문)")
+		}
+	}
+}
+
+let person = Person()
+person.sayMyName() // 나의 이름은 홍길동입니다.
+person.sayMyName1() // 나의 이름은 홍길동입니다.
+person.sayMyName2() // 나의 이름은 Optional("홍길동")입니다.
+person.sayMyName3() // 나의 이름은 홍길동입니다.
+```
+
+- `[weak self]` 사용 시, `guard`문을 주로 같이 사용한다.
+
+
+### 메모리 누수(Memory Leak)의 사례
+
+```swift
+class Dog {
+	var name = "초코"
+	var run: (() -> Void)?
+
+	func walk() {
+		print("\(self.name)가 걷는다.")
+	}
+
+	func saveClosure() {
+		run = { // 클로저를 변수에 저장
+			print("\(self.name)가 뛴다.") // 강한 참조
+			// choco RC +1
+		}
+		// run RC +1
+	}
+
+	deinit { // 소멸자
+		print("\(self.name) 메모리 해제")
+	}
+}
+
+func doSomething() {
+	let choco: Dog? = Dog() // choco RC +1
+	choco?.saveClosure() // choco RC: 2, run RC: 1
+}
+
+doSomething()
+// choco RC -1
+// choco RC: 1, run RC: 1
+```
+
+1. doSomething 함수 내 `choco?.saveClosure()` 코드가 없을 때
+- Dog 클래스의 `인스턴스를 생성`하여 choco 변수에 저장한다. 따라서 인스턴스의 RC가 1 증가한다.
+- `doSomething함수가 종료`되면, choco 변수의 메모리를 해제하기 때문에 인스턴스의 RC가 1 감소한다.
+- 인스턴스의 소멸자(deinit)가 호출된다.
+
+2. doSomething 함수 내 `choco?.saveClosure()` 코드가 있을 때
+- Dog 클래스의 `인스턴스를 생성`하여 choco 변수에 저장한다. 따라서 인스턴스의 RC가 1 증가한다.
+- `saveClosure` 내에서 클로저를 변수 run에 저장하고 있다. 따라서 인스턴스의 RC 가 1 증가한다.
+- `run` 변수는 힙에 생성된 클로저의 메모리 주소를 가르키고 있기 때문에, 클로저의 RC가 1 증가한다.
+- `doSomething 함수가 종료`되면, choco 변수의 메모리를 해제하기 때문에 인스턴스의 RC가 1 감소한다.
+- 클로저의 RC는 1이기 때문에, 메모리에서 해제되지 않는다.
+- 인스턴스의 RC는 1이기 때문에, 메모리에서 해제되지 않는다.
+
+
+### 캡처 리스트 실제 사용 예시
+
+```swift
+// 강한 참조 사이클이 일어나는 예시는 아님
+class ViewController: UIViewController {
+	var name: String = "뷰컨트롤러"
+
+	func doSomething() {
+		// 클로저 Heap에 할당
+		DispatchQueue.global().async {
+			sleep(3)
+			print("글로벌 큐에서 출력하기: \(self.name)") // 강한 참조
+			// vc RC +1
+		}
+	}
+
+	deinit() {
+		print("\(name) 메모리 해제")
+	}
+}
+
+func localScopeFunction() {
+	let vc = ViewController() // vc RC +1
+	vc.doSomething() // vc RC: 2
+}
+
+localScopeFunction()
+// localScopeFunction 함수 종료 후, vc RC -1
+// 글로벌 큐에서 출력하기: 뷰컨트롤러 ------------- sleep(3) 영향
+// doSomething 함수 종료 후, vc RC -1
+// vc RC: 0
+// 뷰컨트롤러 메모리 해제
+```
+
+- `localScopeFunction` 함수가 종료되는 시점에 인스턴스의 RC가 -1되어 RC의 값은 1이다. (강한 참조 중)
+- 따라서, 바로 소멸되지 않는다.
+- 시간이 지나 `DispatchQueue`가 종료된 이후에 클로저와 인스턴스의 RC가 -1이 된다.
+- 인스턴스와 클로저의 RC가 각각 0이기 때문에 메모리에서 해제된다.
+
+```swift
+class ViewController1: UIViewController {
+	var name: String = "뷰컨트롤러"
+
+	func doSomething() {
+		DispatchQueue.global().async { [weak self] in // 약한 참조
+			sleep(3)
+			print("글로벌 큐에서 출력하기: \(self?.name)") // Optional
+		}
+	}
+
+	deinit() {
+		print("\(name) 메모리 해제")
+	}
+}
+
+func localScopeFunction1() {
+	let vc = ViewController()
+	vc.doSomething()
+}
+
+localScopeFunction1()
+// localScopeFunction1 함수 종료 후, vc RC -1
+// vc RC: 0
+// 뷰컨트롤러 메모리 해제
+// 글로벌 큐에서 출력하기: nil ------------ sleep(3) 영향
+```
+
+- 약한 참조가 이루어졌기 때문에, `localScopeFuntion1`이 종료되는 순간 인스턴스의 RC가 0이 되어 메모리에서 해제가 이루어진다.
+- 소멸자가 호출된다.
+- `DispatchQueue`에서 캡처리스트를 통해 인스턴스의 메모리 주소를 캡처했기 때문에, 이미 해제된 인스턴스에 접근함으로 nil이 나오게 된다.
+- DispatchQueue 동작 종료 후, 클로저도 메모리에서 해제된다.
+
