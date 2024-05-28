@@ -312,6 +312,100 @@ properlyGetImages(with: "https://~") { image in
 - URLSession 내에서 completion 클로저를 호출함으로써, 비동기적 작업이 완료된 후 결과값을 가지고 completion 클로저를 실행하게 된다.
 
 
+### 3. 강한 참조
+- 객체 내에서 비동기 코드를 사용하는 경우, 강한 참조로 인해 메모리 누수나 클로저의 수명주기가 증가되는 상황이 발생할 수 있다.
+- `[weak self]`와 같이 캡처리스트 내에 약한 참조를 선언해야 한다.
+
+```swift
+class ViewController: UIViewController {
+	var name: String = "뷰컨트롤러"
+	
+	// 메서드 내에 비동기 코드
+	func doSomething() {
+		DispatchQueue.global().async {
+			sleep(3)
+			print("글로벌큐에서 출력: \(self.name)") // name에 대한 강한 참조 발생 (메서드 외부 변수)
+		}
+	}
+	
+	deinit() {
+		print("\(name) 메모리 해제")
+	}
+}
+
+func localScopeFunction() {
+	let vc = ViewController()
+	vc.doSomething()
+	// 여기서 메모리 할당이 해제되는데, DispatchQueue의 강한 참조로 늦게 해제됨
+}
+
+localScopeFunction()
+
+// 글로벌큐에서 출력: 뷰컨트롤러
+// 뷰컨트롤러 메모리 해제
+```
+
+- 메모리 누수 상황은 아니다.
+- DispatchQueue 내에서 객체에 대한 강한 캡처가 이루어진다.
+- localScopeFunction 함수가 doSomething의 내부 작업이 끝나기 전에 종료된다.
+- 따라서, localScopeFunction에서 뷰컨트롤러가 해제됨에도 불구하고 강한 참조로 RC가 0이 되지 않아서 DispatchQueue 내의 작업이 끝난 뒤 해제된다.
+
+```swift
+class ViewController: UIViewController {
+	// ...
+		func doSomething() {
+		// 약한 참조 선언(캡처리스트)
+		DispatchQueue.global().async { [weak self] in
+			guard let weakSelf = self else { return } // nil이면 return
+			sleep(3)
+			print("글로벌큐에서 출력: \(self.name)") // name에 대한 강한 참조 발생 (메서드 외부 변수)
+		}
+	}
+	// ...
+}
+
+localScopeFunction()
+
+// 뷰컨트롤러 메모리 해제
+```
+
+- DispatchQueue 내에 `[weak self]` 캡처리스트를 사용하였기 때문에, 약한 참조가 이루어진다.
+- 따라서 localScopeFunction()의 종료와 함께 뷰컨트롤러가 해제된다.
+- DispatchQueue 동작 시, 뷰컨트롤러는 nil이므로 print 함수가 호출되지 않는다.
+
+
+
+### 4. 동기함수 -> 비동기적 동작 함수로 변형
+`오래걸리는 함수를 동기적으로 구현하면 메인쓰레드에 부하가 걸린다.`
+
+```swift
+// 동기 함수
+func logtimePrint(name: String) -> String {
+	print("프린트 -1")
+	sleep(1)
+	print("프린트 -2")
+	sleep(1)
+	print("프린트 -3")
+	sleep(1)
+	return "작업 종료"
+}
+```
+
+```swift
+// 비동기 처리
+// return 대신 completionHandler 사용
+func asyncLongtimePrint(name: String, completion: @escaping (String) -> Void) {
+	DispatchQueue.global().async {
+		let n = longtimePrint(name: name)
+		completion(n)
+	}
+}
+
+asyncLongtimePrint(name: "Jobs") { result in
+	print(result)
+}
+```
+
 
 ### OperationQueue
 (내부적으로 GCD기반 구현)
@@ -321,4 +415,123 @@ properlyGetImages(with: "https://~") { image in
 
 - QoS의 기본값은 .background지만, 기반하는 디스패치큐(unspecified 제외)의 QoS 영향을 받는다.
 - Concurrent(디폴트), Concurrent(maxConcurrentOperationCount로 사용할 쓰레드 개수 설정 가능)
+
+
+
+
+# Async/Await
+
+비동기 함수를 return형이 아니라 completionHandler를 사용하는 코드로 설계할 때 단점
+- completionHandler가 또 다른 completionHandler를 부르고... 꼬리물기식으로 작성될 수 있다. (depth가 깊어짐)
+
+```swift
+// 비동기 함수의 컴플리션 핸들러의 컴플리션 핸들러의 컴플리션 핸들러의 컴ㅍ....
+func processImageData1(completionBlock: (_ result: Image) -> Void) {
+	loadWebResource("dataprofile.txt") { dataResource in
+		loadWebResource("imagedata.dat") { imageResource in
+			decodeImage(dataResource, imageResource) { imageTmp in
+				// ...
+			}
+		}
+	}
+}
+```
+
+```swift
+// async/await(Swift 5.5)
+func loadWebResource(_ path: String) async throws -> Resource {
+	// ...
+}
+
+func processImageData() async throws -> Image {
+	let dataResource = try await loadWebResource("dataprofile.txt")
+	// ...
+}
+```
+
+- `async throws` 를 붙여서 return형 함수를 설계할 수 있다.
+- `try await` 키워드를 사용하여 async 함수의 리턴 시점을 기다릴 수 있다.
+
+
+```swift
+func logtimeAsyncPrint() async throws -> String {
+	print("프린트 -1")
+	sleep(1)
+	print("프린트 -2")
+	sleep(1)
+	print("프린트 -3")
+	sleep(1)
+	return "작업 종료"
+}
+
+func linkedPrint2() async throws -> Int {
+	_ = try await logtimeAsyncPrint()
+	_ = try await logtimeAsyncPrint()
+	_ = try await logtimeAsyncPrint()
+	return 3
+}
+
+let result = try await linkedPrint2()
+```
+
+
+
+# 동시성 프로그래밍 메모리 구조 ✨
+
+코드, 데이터, 힙, 스택 영역 중 `스택` 영역과 `코드, 데이터, 힙` 영역의 자원 공유의 관계
+
+
+### 동시성 프로그래밍의 문제
+
+**1. 경쟁상황 / 경쟁조건(Race Condition)**
+- 멀티 쓰레드 환경에서, 같은 시점에 여러 쓰레드가 하나의 메모리에 접근하는 경우 발생
+- `Thread-safe` 하지 않다.
+- 하나의 쓰레드에서만 접근할 수 있도록 하는 여러 방법이 있다. (Lock 등)
+
+**2. 교착상태(DeadLock)**
+- 멀티 쓰레드 환경에서, 베타적인 메모리 사용(서로 잠그고 점유)으로 일이 진행되지 않는 경우
+- 메서드가 작업을 종료할 수 없게 된다. -> 앱이 멈춤
+
+
+### 동시성 프로그래밍 문제의 해결
+
+**Thread-safe**
+- 메모리에 접근하는 작업을 serial Queue로 보내기
+	- serial Queue는 직렬이기 때문에, 분산 처리된 작업이 하나의 쓰레드에서 이루어진다.
+
+```swift
+var array = [String]()
+
+// 비동기 작업 20개
+for i in 1...20 {
+	DispatchQueue.global().async {
+		print("\(i)")
+		array.append("\(i)")
+	}
+}
+```
+
+- 여러 쓰레드에서 array에 접근하게 된다.
+- 따라서, 접근 시에 메모리가 변경될 수 있다. (Thread-safe하지 않음)
+
+```swift
+var array = [String]()
+let serialQueue = DispatchQueue(label: "serial")
+
+for i in 1...20 {
+	DispatchQueue.global().async {
+		print("\(i)")
+		
+		// 직렬큐 이용
+		serialQueue.async {
+			array.append("\(i)")
+		}
+	}
+}
+```
+
+- 직렬큐를 이용하여 append 작업이 하나의 쓰레드에서 이루어질 수 있도록 한다.
+- Thread-safe가 이루어진다.
+
+
 
